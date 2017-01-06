@@ -1,0 +1,80 @@
+#! /bin/bash
+#
+# gits
+#
+# Copyright (C) 2016 Amal Francis <amalfra@gmail.com>
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+#
+
+readonly VERSION=0.0.1
+
+if [[ -z $GITS_GIT_FOLDERS ]]; then
+  info_msg="You haven't configured your git folders. \
+    Set \`GITS_GIT_FOLDERS\` shell variable with your git \
+      folders(multiple folders can be seperated by commas)"
+  echo $info_msg
+  exit 1
+fi
+
+sync_repo() {
+  # get the name of git repo in pwd
+  repo_name=$(basename `git rev-parse --show-toplevel`)
+  # get branch name of git repo in pwd
+  branch=$(git rev-parse --abbrev-ref HEAD)
+
+  git pull --rebase main $branch
+  echo -e '-----> Updated - '$repo_name"\n"
+
+  git push origin $branch
+  if [ $? -eq 128 ]; then
+    echo -e '-----> Failed to push local clone to origin - '$repo_name"\n"
+  else
+    echo -e '-----> Pushed local clone to origin - '$repo_name"\n"
+  fi
+}
+
+# update IFS so that we can easily loop over $GITS_GIT_FOLDERS
+# config variable which has multiple values seperated by commas
+default_IFS=$IFS
+IFS=,
+for folder in $GITS_GIT_FOLDERS; do
+  # restore shell's default IFS
+  IFS=${default_IFS}
+  cd $folder
+  # check whether the folder has a git repo
+  git status &> /dev/null
+  if [ $? -eq 128 ]; then
+    # since the folder in config doesn't have a git repo, we assume
+    # that it's sub folders will have a git repo and sync those
+    repos=($(ls -d */ | cut -f1 -d'/'))
+
+    for repo in "${repos[@]}"
+    do
+      repo_full_path=$(printf "%s/%s" $folder $repo)
+      cd $repo_full_path
+      sync_repo
+      cd ..
+    done
+  else
+    # a git repo! sync it
+    sync_repo
+  fi
+  cd ..
+done
