@@ -16,6 +16,12 @@ export GITS_GIT_FOLDERS="/home/amal/myProject1, /home/amal/myProject2"
 ```
 *gits* will check for a git repo in all provided folders and if it does not exist, then will do sync in all it's sub folders. 
 
+You can also sync specific folder by using commandline parameter. For eg
+```sh
+gits /home/amal/myProject
+```
+will do sync just on ```/home/amal/myProject``` folder.
+
 ## Development
 Questions, problems or suggestions? Please post them on the [issue tracker](https://github.com/amalfra/gits/issues).
 
