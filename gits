@@ -23,14 +23,25 @@
 # SOFTWARE.
 #
 
-readonly VERSION=0.0.1
+readonly VERSION=0.1.0
 
-if [[ -z $GITS_GIT_FOLDERS ]]; then
+if [[ -z $1 && -z $GITS_GIT_FOLDERS ]]; then
+  # if user hasn't passed a folder and GITS_GIT_FOLDERS config
+  # is empty we can't continue
   info_msg="You haven't configured your git folders. \
     Set \`GITS_GIT_FOLDERS\` shell variable with your git \
       folders(multiple folders can be seperated by commas)"
   echo $info_msg
   exit 1
+else
+  # check if path specified by user exists
+  if [[ -d "$1" ]]; then
+    GITS_GIT_FOLDERS="$1"
+  else
+    info_msg="The GIT directory you have passed does not exist!"
+    echo $info_msg
+    exit 1
+  fi
 fi
 
 sync_repo() {
