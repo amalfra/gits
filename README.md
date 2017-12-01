@@ -1,5 +1,7 @@
 gits
 ========
+[![GitHub release](https://img.shields.io/github/release/amalfra/gits.svg)](https://github.com/amalfra/gits/releases)
+
 *gits* is a simple bash script to sync specified git repo(s). It will pull and rebase code from your remote named `main` and push it to `origin`.
 
 ## Installation
